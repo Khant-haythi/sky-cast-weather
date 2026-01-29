@@ -47,7 +47,7 @@ class _SearchScreenState extends State<SearchScreen> {
   void _onSearchChanged(String query){
     if(_debounce?.isActive ?? false) _debounce!.cancel();
 
-    _debounce = Timer(const Duration(milliseconds: 1000), ()async {
+    _debounce = Timer(const Duration(milliseconds: 600), ()async {
       if(query.trim().isEmpty){
         setState(() => _searchResults=[]) ;
         return;
@@ -59,6 +59,14 @@ class _SearchScreenState extends State<SearchScreen> {
       });
     });
 
+  }
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+
+    _controller.dispose();
+    super.dispose();
   }
 
   void _navigateToWeather(String city) {
@@ -112,8 +120,6 @@ class _SearchScreenState extends State<SearchScreen> {
                       ),
                       child: TextField(
                         controller: _controller,
-                        // Trigger search logic
-                        onSubmitted: (value) => _navigateToWeather(value),
                         textAlignVertical: TextAlignVertical.center,
                         decoration: InputDecoration(
                           hintText: "Enter city name...",
@@ -146,21 +152,22 @@ class _SearchScreenState extends State<SearchScreen> {
                   const SizedBox(width: 12),
                   GestureDetector(
                     onTap: () {
+
                       FocusScope.of(context).unfocus();
                       _performSearch(_controller.text);
                     },
                     child: Container(
-                      height: 50, // Matches your TextField height
+                      height: 50,
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                       decoration: BoxDecoration(
-                        // 1. Matching Vertical Gradient
+
                         gradient: const LinearGradient(
                           begin: Alignment.topCenter,
                           end: Alignment.bottomCenter,
                           colors: [Color(0xFF1A3673), Color(0xFF2962FF)],
                         ),
                         borderRadius: BorderRadius.circular(20),
-                        // 2. Subtle outer glow
+
                         boxShadow: [
                           BoxShadow(
                             color: const Color(0xFF2962FF).withOpacity(0.3),
@@ -217,8 +224,8 @@ class _SearchScreenState extends State<SearchScreen> {
                                 const Color(0xFF2962FF),                 // Deep Navy
                               ],
                             ),
-                            borderRadius: BorderRadius.circular(20), // Extra rounded for modern look
-                            // 2. Subtle shadow for "Floating" effect
+                            borderRadius: BorderRadius.circular(20),
+
                             boxShadow: [
                               BoxShadow(
                                 color: Colors.blueAccent.withOpacity(0.2),
@@ -226,7 +233,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                 offset: const Offset(0, 5),
                               ),
                             ],
-                            // 3. Thin border for "Glass" definition
+
                             border: Border.all(color: Colors.white, width: 1),
                           ),
                           child: ListTile(
