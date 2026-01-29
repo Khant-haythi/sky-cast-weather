@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/cupertino.dart';
 import '../../domain/entities/weather.dart';
 import '../../domain/repositories/weather_repository.dart';
 import '../models/weather_model.dart';
@@ -20,12 +21,11 @@ class WeatherRepositoryImpl implements WeatherRepository {
         },
       );
 
-      // Check if city exists
+
       if (geoResponse.data['results'] == null) {
         throw Exception('City not found');
       }
 
-      // Extract the data we need for the next step
       final location = geoResponse.data['results'][0];
       final double lat = location['latitude'];
       final double lng = location['longitude'];
@@ -40,6 +40,7 @@ class WeatherRepositoryImpl implements WeatherRepository {
           'longitude': lng,
           'current': 'temperature_2m,weather_code',
           'daily': 'weather_code,temperature_2m_max,temperature_2m_min',
+          'forecast_days': 7,
           'timezone': 'auto',
         },
       );
@@ -53,6 +54,58 @@ class WeatherRepositoryImpl implements WeatherRepository {
 
     } catch (e) {
       throw Exception('Failed to fetch weather: $e');
+    }
+  }
+
+
+  Future<List<Map<String, String>>> searchCities(String query) async {
+
+    try {
+      final response = await _dio.get(
+        'https://geocoding-api.open-meteo.com/v1/search',
+        queryParameters: {
+          'name': query,
+          'count': 20,
+          'language': 'en',
+          'format': 'json'
+        },
+      );
+
+      final results = response.data['results'];
+      if (results == null || (results as List).isEmpty) {
+        throw 'City not found. Please try a different name.';
+      }
+
+      final List<Map<String, String>> uniqueCities = [];
+      final Set<String> seen = {};
+
+      for (var city in results) {
+        final name = city['name']?.toString() ?? '';
+        final region = city['admin1']?.toString() ?? '';
+        final country = city['country']?.toString() ?? '';
+
+        final uniqueKey = "$name-$region-$country".toLowerCase();
+
+        if (!seen.contains(uniqueKey)) {
+          seen.add(uniqueKey);
+          uniqueCities.add({
+            'name': name,
+            'country': country,
+            'admin1': region,
+          });
+        }
+
+
+        if (uniqueCities.length >= 5) break;
+      }
+
+      return uniqueCities;
+
+    } catch (e) {
+      if (e is String) {
+        throw e;
+      }
+      throw 'Unable to find cities. Please check your internet and try again.';
     }
   }
 }
