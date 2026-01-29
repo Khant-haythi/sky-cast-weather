@@ -16,20 +16,32 @@ class _SearchScreenState extends State<SearchScreen> {
   final WeatherRepositoryImpl _repository = WeatherRepositoryImpl();
 
   List<Map<String,String>>  _searchResults = [];
+  String? _errorMessage;
   Timer? _debounce;
 
   Future<void> _performSearch(String query) async {
     if (query.trim().isEmpty) {
-      setState(() => _searchResults = []);
+      setState(() {
+        _searchResults = [];
+        _errorMessage = null;
+      });
       return;
     }
 
-    // Show the user that the app is working
-    final results = await _repository.searchCities(query);
+    try {
 
-    setState(() {
-      _searchResults = results;
-    });
+      final results = await _repository.searchCities(query);
+
+      setState(() {
+        _searchResults = results;
+        _errorMessage = null;
+      });
+    } catch (e) {
+      setState(() {
+        _searchResults = [];
+        _errorMessage = e.toString();
+      });
+    }
   }
 
   void _onSearchChanged(String query){
@@ -113,12 +125,14 @@ class _SearchScreenState extends State<SearchScreen> {
                             icon: const Icon(Icons.cancel, color: Colors.grey),
                             onPressed: () {
                               _controller.clear();
+                              setState(() {
+                                _errorMessage = null;
+                                _searchResults = [];
+                              });
                               _onSearchChanged('');
-                              setState(() {});
                             },
                           )
                               : null,
-                          // contentPadding: const EdgeInsets.only(bottom: 5),
                         ),
                         onChanged: (userTypewords) {
                           _onSearchChanged(userTypewords);
@@ -128,28 +142,66 @@ class _SearchScreenState extends State<SearchScreen> {
                     ),
                   ),
 
+
                   const SizedBox(width: 12),
-                  ElevatedButton(
-                    onPressed: () {
+                  GestureDetector(
+                    onTap: () {
                       FocusScope.of(context).unfocus();
                       _performSearch(_controller.text);
                     },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF1A3673),
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15),
+                    child: Container(
+                      height: 50, // Matches your TextField height
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      decoration: BoxDecoration(
+                        // 1. Matching Vertical Gradient
+                        gradient: const LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [Color(0xFF1A3673), Color(0xFF2962FF)],
+                        ),
+                        borderRadius: BorderRadius.circular(20),
+                        // 2. Subtle outer glow
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF2962FF).withOpacity(0.3),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
                       ),
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      child: const Center(
+                        child: Text(
+                          "Search",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
                     ),
-                    child: const Text("Search"),
                   ),
                 ],
               ),
               const SizedBox(height: 20,),
               //The search List
               Expanded(
-                  child: ListView.builder(
+                  child: _errorMessage != null
+                        ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.search_off, size: 60, color: Colors.grey),
+                            const SizedBox(height: 10),
+                            Text(
+                              _errorMessage!,
+                              style: const TextStyle(color: Colors.grey, fontSize: 16),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                  )
+                  : ListView.builder(
                       itemCount: _searchResults.length,
                       itemBuilder: (context, index) {
                         final city = _searchResults[index];
