@@ -17,13 +17,13 @@ This repository contains my solution for the **Sky Cast – Weather (Flutter)** 
 ---
 ## 📱 UI Screenshots
 ### 🔍 City Search Screen with Geolocation
-![City Search Screen](screenshots/Search_screen.png)
+<img src="screenshots/Search_screen.png" alt="City Search Screen" width="400"/>
 
-### 🌤️ Current Weather  Display Screen
-![Current Weather Screen](screenshots/display_screen.png)
+### 🌤️ Current Weather Display Screen
+<img src="screenshots/display_screen.png" alt="Current Weather Screen" width="400"/>
 
-### 📊 5-dayDetailed Forecast (More Details)
-![Sunny Weather](screenshots/5-day.png)
+### 📊 5-day Detailed Forecast (More Details)
+<img src="screenshots/5-day.png" alt="5-day Forecast Screen" width="400"/>
 
 ## 🌐 Weather API Integration
 
