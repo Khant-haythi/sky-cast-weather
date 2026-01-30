@@ -9,7 +9,6 @@ class WeatherRepositoryImpl implements WeatherRepository {
   @override
   Future<Weather> getWeather(String cityName) async {
     try {
-
       // Find the City (Geocoding API)
       final geoResponse = await _dio.get(
         'https://geocoding-api.open-meteo.com/v1/search',
@@ -52,26 +51,15 @@ class WeatherRepositoryImpl implements WeatherRepository {
           correctCityName,
           country
       );
-
     } on DioException catch (e) {
-      // THIS IS THE NEW ERROR HANDLING LOGIC
-      if (e.type == DioExceptionType.connectionError || e.type == DioExceptionType.connectionTimeout) {
-        throw 'No internet connection. Please check your network.';
-      } else if (e.type == DioExceptionType.badResponse) {
-        final status = e.response?.statusCode;
-        if (status == 404) throw 'City not found. Please try another name.';
-        throw 'Server error: $status. Please try again later.';
-      }
-      throw 'Something went wrong. Please try again.';
+      throw _handleDioError(e); // Clean calling
     } catch (e) {
-      // Catch any other unexpected errors (like parsing issues)
       throw e.toString();
     }
   }
 
 
   Future<List<Map<String, String>>> searchCities(String query) async {
-
     try {
       final response = await _dio.get(
         'https://geocoding-api.open-meteo.com/v1/search',
@@ -112,20 +100,26 @@ class WeatherRepositoryImpl implements WeatherRepository {
       }
 
       return uniqueCities;
-
     } on DioException catch (e) {
-      // THIS IS THE NEW ERROR HANDLING LOGIC
-      if (e.type == DioExceptionType.connectionError || e.type == DioExceptionType.connectionTimeout) {
-        throw 'No internet connection. Please check your network.';
-      } else if (e.type == DioExceptionType.badResponse) {
-        final status = e.response?.statusCode;
-        if (status == 404) throw 'City not found. Please try another name.';
-        throw 'Server error: $status. Please try again later.';
-      }
-      throw 'Something went wrong. Please try again.';
+      throw _handleDioError(e); // Clean calling
     } catch (e) {
-      // Catch any other unexpected errors (like parsing issues)
       throw e.toString();
     }
   }
+
+String _handleDioError(DioException e) {
+  if (e.response != null) {
+    final status = e.response?.statusCode;
+    if (status == 404) return 'Request Error (404): API link not found.';
+    if (status != null && status >= 500) return 'Server Error ($status): The service is down.';
+    return 'Unexpected Error ($status): Please try again.';
+  } else {
+    if (e.type == DioExceptionType.connectionTimeout ||
+        e.type == DioExceptionType.receiveTimeout ||
+        e.type == DioExceptionType.connectionError) {
+      return 'No internet connection. Please check your network.';
+    }
+    return 'Network Error: Could not reach server.';
   }
+}
+}

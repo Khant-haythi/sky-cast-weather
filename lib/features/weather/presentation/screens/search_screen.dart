@@ -18,28 +18,36 @@ class _SearchScreenState extends State<SearchScreen> {
   List<Map<String,String>>  _searchResults = [];
   String? _errorMessage;
   Timer? _debounce;
+  bool _isLoading = false;
 
   Future<void> _performSearch(String query) async {
     if (query.trim().isEmpty) {
       setState(() {
+        _isLoading = false; // Fix: should be false if empty
         _searchResults = [];
         _errorMessage = null;
       });
       return;
     }
 
+    setState(() {
+      _isLoading = true; // Start the spinner inside the button
+      // Note: DON'T set _errorMessage = null here if you want
+      // the error text to stay visible while it's spinning.
+    });
+
     try {
-
       final results = await _repository.searchCities(query);
-
       setState(() {
         _searchResults = results;
         _errorMessage = null;
+        _isLoading = false;
       });
     } catch (e) {
       setState(() {
         _searchResults = [];
         _errorMessage = e.toString();
+        _isLoading = false; // Stop the spinner so the "Try again" icon returns
       });
     }
   }
@@ -203,7 +211,13 @@ class _SearchScreenState extends State<SearchScreen> {
               const SizedBox(height: 20,),
               //The search List
               Expanded(
-                  child: _errorMessage != null
+                  child: _isLoading
+                        ? const Center(
+                        child: CircularProgressIndicator(
+                        color: Color(0xFF2962FF),
+                  ),
+                )
+                 : _errorMessage != null
                         ? Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -219,13 +233,33 @@ class _SearchScreenState extends State<SearchScreen> {
                           ),
                         ),
                         const SizedBox(height: 15),
-                        TextButton.icon(
-                          onPressed: () => _performSearch(_controller.text),
-                          icon: const Icon(Icons.refresh, color: Color(0xFF2962FF)),
-                          label: const Text("Try again"),
+                        TextButton(
+                          onPressed: _isLoading ? null : () => _performSearch(_controller.text),
                           style: TextButton.styleFrom(
                             foregroundColor: const Color(0xFF2962FF),
-                            textStyle: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min, // This prevents the overflow
+                            children: [
+                              if (_isLoading)
+                                const SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Color(0xFF2962FF),
+                                  ),
+                                )
+                              else
+                                const Icon(Icons.refresh, size: 20),
+
+                              const SizedBox(width: 8), // Space between icon/spinner and text
+
+                              Text(
+                                _isLoading ? "Retrying..." : "Try again",
+                                style: const TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                            ],
                           ),
                         )
                       ],
