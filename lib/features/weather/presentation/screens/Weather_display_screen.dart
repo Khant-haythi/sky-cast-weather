@@ -226,7 +226,7 @@ class _WeatherDisplayScreenState extends ConsumerState<WeatherDisplayScreen> {
     );
   }
 
-  Widget _buildForecastRow(DailyForecast forecast,Color textColor) {
+  Widget _buildForecastRow(DailyForecast forecast, Color textColor) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12),
       child: Row(
@@ -251,10 +251,15 @@ class _WeatherDisplayScreenState extends ConsumerState<WeatherDisplayScreen> {
               ],
             ),
           ),
-          Text("${forecast.maxTemp.round()}°",
-              style: TextStyle(color: textColor ,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold)),
+          Text(
+            _isCelsius
+                ? "${forecast.maxTemp.round()}° / ${forecast.minTemp.round()}°"
+                : "${forecast.maxTempF.round()}° / ${forecast.minTempF.round()}°",
+            style: TextStyle(
+                color: textColor,
+                fontSize: 16,
+                fontWeight: FontWeight.bold),
+          ),
         ],
       ),
     );
