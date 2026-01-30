@@ -25,6 +25,9 @@ This repository contains my solution for the **Sky Cast – Weather (Flutter)** 
 ### 📊 5-day Detailed Forecast (More Details)
 <img src="screenshots/5-day.png" alt="5-day Forecast Screen" width="400"/>
 
+> **UI Inspiration Note:**  
+> The visual design and layout of this application are inspired by the Xiaomi Weather app.  
+
 ## 🌐 Weather API Integration
 
 I selected **Open-Meteo.com** as the weather API provider.
@@ -40,7 +43,7 @@ I selected **Open-Meteo.com** as the weather API provider.
 
 ---
 
-## ✅ Features & Requirement Mapping
+## Features & Requirement Mapping
 
 ### Part 1: Core Functionality (Mandatory)
 
@@ -71,14 +74,15 @@ I selected **Open-Meteo.com** as the weather API provider.
 
 ### Part 2: Enhancements (Implemented)
 
-- ✅ **State Management:** Riverpod with `StateNotifierProvider` and `AsyncValue`
-- ✅ **Animations:** Weather-based Lottie animations
-- ✅ **Dynamic UI Theming:** Gradient backgrounds adjusted to weather conditions
+- **State Management:** Riverpod with `StateNotifierProvider` and `AsyncValue`
+- **Animations:** Weather-based Lottie animations
+- **Dynamic UI Theming:** Gradient backgrounds adjusted to weather conditions
 - <img src="screenshots/cloudy.jpg" alt="Dynamic UI - Sunny" width="300"/>  
   <img src="screenshots/snowy.jpg" alt="Dynamic UI - Rainy" width="300"/>
   <img src="screenshots/Sunny.jpg" alt="Dynamic UI - Rainy" width="300"/>
-- ✅ **Geolocation:** Automatic weather fetch based on user’s current location with permission handling
-- ### 📊 Detailed Weather Insights (Enhancement)
+  <img src="screenshots/Rainy.png" alt="Dynamic UI - Rainy" width="300"/>
+- **Geolocation:** Automatic weather fetch based on user’s current location with permission handling
+- ### Detailed Weather Insights (Enhancement)
 
 - **Sequential API Flow:**  
   The app follows a two-step data-fetching process. It first retrieves geocoding data to accurately resolve latitude and longitude, then triggers the weather forecast request using those exact coordinates. This ensures precise and reliable weather results.

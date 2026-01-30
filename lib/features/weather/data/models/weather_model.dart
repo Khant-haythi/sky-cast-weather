@@ -22,12 +22,12 @@ class WeatherModel extends Weather {
       String city,
       String country,
       ) {
-    final current = json['current'];
-    final daily = json['daily'];
 
+    final current = json['current'] ?? {};
+    final daily = json['daily'] ?? {};
 
     List<DailyForecast> forecasts = [];
-    for (int i = 0; i < 7; i++) {
+    for (int i = 0; i < 5; i++) {
       forecasts.add(DailyForecast(
         date: DateTime.parse(daily['time'][i]),
         maxTemp: (daily['temperature_2m_max'][i] as num).toDouble(),
@@ -38,7 +38,7 @@ class WeatherModel extends Weather {
       ));
     }
 
-    final hourly = json['hourly'];
+    final hourly = json['hourly'] ?? {};
     final List<double> allTemps = List<double>.from(hourly['temperature_2m']);
     final List<int> allCodes = List<int>.from(hourly['weather_code']);
 
@@ -71,13 +71,16 @@ class WeatherModel extends Weather {
 
   //function that covert WMO code into the description
   static String _mapWmoCodeToString(int code) {
-    if (code == 0) return "Clear Sky";
-    if (code < 4) return "Cloudy";
-    if (code < 50) return "Foggy";
-    if (code < 70) return "Rainy";
-    if (code < 80) return "Snowy";
-    if (code < 85) return "Heavy Rain";
-    if (code < 90) return "Snowy";
-    return "Thunderstorm";
+    switch (code) {
+      case 0: return 'Clear sky';
+      case 1: case 2: case 3: return 'Cloudy';
+      case 45: case 48: return 'Foggy';
+      case 51: case 53: case 55: return 'Drizzle';
+      case 61: case 63: case 65: return 'Rainy';
+      case 80: case 81: case 82: return 'Showers';
+      case 71: case 73: case 75: case 77: return 'Snowy';
+      case 95: case 96: case 99: return 'Thunderstorm';
+      default: return 'Clear sky';
+    }
   }
 }

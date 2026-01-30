@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:flutter/material.dart';
+
 class WeatherThemeMapper {
   static List<Color> getGradient(int code) {
 

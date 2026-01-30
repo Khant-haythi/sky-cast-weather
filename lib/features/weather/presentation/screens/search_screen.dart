@@ -24,6 +24,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   String? _errorMessage;
   Timer? _debounce;
   bool _isLocationLoading = false;
+  bool _isSearchButtonLoading = false;
 
   @override
   void initState() {
@@ -186,19 +187,13 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                   ),
                   const SizedBox(width: 12),
                   GestureDetector(
-                    onTap: () async {
-                      setState(() => _isLocationLoading = true);
+                    onTap: () {
+                      final query = _controller.text.trim();
 
-                      final cityName = await LocationService().getCurrentCity();
+                      if (query.isNotEmpty) {
+                        _performSearch(query);
 
-                      if (mounted) {
-                        setState(() => _isLocationLoading = false);
-                      }
-
-                      if (cityName.isNotEmpty) {
-
-                        ref.read(localWeatherProvider.notifier).fetchWeather(cityName);
-                        _controller.clear();
+                        FocusScope.of(context).unfocus();
                       }
                     },
                     child: Container(
@@ -220,8 +215,6 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                         ],
                       ),
                       child: const Center(
-                        // ✅ FIX 2: Removed logic check for _isLocationLoading
-                        // It now always shows "Search"
                         child: Text(
                           "Search",
                           style: TextStyle(
@@ -272,7 +265,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           }
 
           if (cityName.isNotEmpty) {
-            // ✅ FIX 1: Update localWeatherProvider
+
             ref.read(localWeatherProvider.notifier).fetchWeather(cityName);
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
