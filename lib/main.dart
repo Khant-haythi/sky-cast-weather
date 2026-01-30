@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:sky_cast_weather/features/weather/presentation/screens/search_screen.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(const ProviderScope(
+    child: MyApp(),
+  ),);
 }
 
 class MyApp extends StatelessWidget {

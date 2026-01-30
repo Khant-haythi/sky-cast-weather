@@ -5,13 +5,22 @@ import '../../domain/repositories/weather_repository.dart';
 import '../models/weather_model.dart';
 
 class WeatherRepositoryImpl implements WeatherRepository {
-  final Dio _dio = Dio();
+  static final Dio _dio = Dio(BaseOptions(
+    connectTimeout: const Duration(seconds: 15),
+    receiveTimeout: const Duration(seconds: 15),
+  ))..interceptors.add(LogInterceptor(
+    requestBody: true,
+    responseBody: true,
+    logPrint: (obj) => debugPrint('🌐 DIO: $obj'),
+  ));
+
   @override
-  Future<Weather> getWeather(String cityName) async {
+  Future<Weather> getWeather(String cityName, CancelToken cancelToken) async {
     try {
       // Find the City (Geocoding API)
       final geoResponse = await _dio.get(
         'https://geocoding-api.open-meteo.com/v1/search',
+        cancelToken: cancelToken,
         queryParameters: {
           'name': cityName,
           'count': 1,
@@ -25,15 +34,24 @@ class WeatherRepositoryImpl implements WeatherRepository {
         throw Exception('City not found');
       }
 
-      final location = geoResponse.data['results'][0];
-      final double lat = location['latitude'];
-      final double lng = location['longitude'];
-      final String correctCityName = location['name'];
+      final results = geoResponse.data['results'];
+
+
+      if (results == null || (results as List).isEmpty) {
+        throw 'City not found. Please try a different name.';
+      }
+
+      final location = results[0];
+      final double lat = location['latitude']?.toDouble() ?? 0.0;
+      final double lng = location['longitude']?.toDouble() ?? 0.0;
+      final String correctCityName = location['name'] ?? cityName;
       final String country = location['country'] ?? 'Unknown';
 
+      debugPrint('📍 Found Location: $lat, $lng. Now calling Forecast...');
       // Get the Weather (Forecast API) using lat and lng
       final weatherResponse = await _dio.get(
         'https://api.open-meteo.com/v1/forecast',
+        cancelToken: cancelToken,
         queryParameters: {
           'latitude': lat,
           'longitude': lng,
@@ -52,12 +70,11 @@ class WeatherRepositoryImpl implements WeatherRepository {
           country
       );
     } on DioException catch (e) {
-      throw _handleDioError(e); // Clean calling
+      throw _handleDioError(e);
     } catch (e) {
       throw e.toString();
     }
   }
-
 
   Future<List<Map<String, String>>> searchCities(String query) async {
     try {
@@ -95,13 +112,12 @@ class WeatherRepositoryImpl implements WeatherRepository {
           });
         }
 
-
         if (uniqueCities.length >= 5) break;
       }
 
       return uniqueCities;
     } on DioException catch (e) {
-      throw _handleDioError(e); // Clean calling
+      throw _handleDioError(e);
     } catch (e) {
       throw e.toString();
     }
