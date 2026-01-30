@@ -78,7 +78,7 @@ I selected **Open-Meteo.com** as the weather API provider.
 - **Animations:** Weather-based Lottie animations
 - **Dynamic UI Theming:** Gradient backgrounds adjusted to weather conditions
 - <img src="screenshots/cloudy.jpg" alt="Dynamic UI - Sunny" width="300"/>  
-  <img src="screenshots/snowy.jpg" alt="Dynamic UI - Rainy" width="300"/>
+  <img src="screenshots/snowy.png" alt="Dynamic UI - Rainy" width="300"/>
   <img src="screenshots/Sunny.jpg" alt="Dynamic UI - Rainy" width="300"/>
   <img src="screenshots/Rainy.png" alt="Dynamic UI - Rainy" width="300"/>
 - **Geolocation:** Automatic weather fetch based on user’s current location with permission handling
