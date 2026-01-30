@@ -74,6 +74,9 @@ I selected **Open-Meteo.com** as the weather API provider.
 - ✅ **State Management:** Riverpod with `StateNotifierProvider` and `AsyncValue`
 - ✅ **Animations:** Weather-based Lottie animations
 - ✅ **Dynamic UI Theming:** Gradient backgrounds adjusted to weather conditions
+- <img src="screenshots/cloudy.jpg" alt="Dynamic UI - Sunny" width="300"/>  
+  <img src="screenshots/snowy.jpg" alt="Dynamic UI - Rainy" width="300"/>
+  <img src="screenshots/Sunny.jpg" alt="Dynamic UI - Rainy" width="300"/>
 - ✅ **Geolocation:** Automatic weather fetch based on user’s current location with permission handling
 - ### 📊 Detailed Weather Insights (Enhancement)
 
@@ -123,8 +126,7 @@ The application uses Riverpod to manage the lifecycle of weather data:
 ## 💡 Key Technical Decisions
 
 - **Singleton Dio Instance:**  
-  I implemented a centralized network client using a `static final` Dio instance. This ensures connection socket reuse, significantly improving performance and preventing "connection limit" errors during rapid searches.  
-  Singleton Dio Instance: I implemented a centralized network client using a static final Dio instance. This ensures connection socket reuse, significantly improving performance and preventing "connection limit" errors during rapid searches.
+  I implemented a centralized network client using a `static final` Dio instance. This ensures connection socket reuse, significantly improving performance and preventing "connection limit" errors during rapid searches.
 
 - **Debounced Search Strategy:**  
   To optimize API usage and enhance user experience, I implemented a Debouncer (using a Timer) for the city search functionality. This ensures that network requests are only triggered after the user has stopped typing for 600ms, preventing redundant API calls for every keystroke.
