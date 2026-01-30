@@ -11,6 +11,8 @@ class WeatherModel extends Weather {
     required super.condition,
     required super.conditionIconId,
     required super.dailyForecasts,
+    required super.detailedForecasts
+
   });
 
 
@@ -23,6 +25,7 @@ class WeatherModel extends Weather {
     final current = json['current'];
     final daily = json['daily'];
 
+
     List<DailyForecast> forecasts = [];
     for (int i = 0; i < 7; i++) {
       forecasts.add(DailyForecast(
@@ -31,6 +34,29 @@ class WeatherModel extends Weather {
         minTemp: (daily['temperature_2m_min'][i] as num).toDouble(),
         condition: _mapWmoCodeToString(daily['weather_code'][i]),
         iconId: daily['weather_code'][i].toString(),
+          weatherCode: daily['weather_code'][i] as int,
+      ));
+    }
+
+    // Inside WeatherModel.fromOpenMeteo(Map<String, dynamic> json...)
+    final hourly = json['hourly'];
+    final List<double> allTemps = List<double>.from(hourly['temperature_2m']);
+    final List<int> allCodes = List<int>.from(hourly['weather_code']);
+
+    List<DayDetailedForecast> detailedList = [];
+
+// Loop for the next 5 days
+    for (int i = 0; i < 5; i++) {
+      int dayOffset = i * 24; // Calculate start of each day
+
+      detailedList.add(DayDetailedForecast(
+        date: DateTime.now().add(Duration(days: i)),
+        slots: [
+          HourlySlot(time: "9 AM", temp: allTemps[dayOffset + 9], weatherCode: allCodes[dayOffset + 9]),
+          HourlySlot(time: "12 PM", temp: allTemps[dayOffset + 12], weatherCode: allCodes[dayOffset + 12]),
+          HourlySlot(time: "3 PM", temp: allTemps[dayOffset + 15], weatherCode: allCodes[dayOffset + 15]),
+          HourlySlot(time: "6 PM", temp: allTemps[dayOffset + 18], weatherCode: allCodes[dayOffset + 18]),
+        ],
       ));
     }
 
@@ -41,6 +67,7 @@ class WeatherModel extends Weather {
       condition: _mapWmoCodeToString(current['weather_code']),
       conditionIconId: current['weather_code'].toString(),
       dailyForecasts: forecasts,
+      detailedForecasts: detailedList,
     );
   }
 

@@ -42,6 +42,9 @@ class DailyForecast {
   });
 
   double get temp => maxTemp;
+  double get maxTempF => (maxTemp * 9 / 5) + 32;
+  double get minTempF => (minTemp * 9 / 5) + 32;
+
 }
 
 class DayDetailedForecast {

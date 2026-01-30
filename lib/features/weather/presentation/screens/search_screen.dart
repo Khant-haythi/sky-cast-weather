@@ -44,27 +44,37 @@ class _SearchScreenState extends State<SearchScreen> {
     }
   }
 
-  void _onSearchChanged(String query){
-    if(_debounce?.isActive ?? false) _debounce!.cancel();
 
-    _debounce = Timer(const Duration(milliseconds: 600), ()async {
-      if(query.trim().isEmpty){
-        setState(() => _searchResults=[]) ;
+  void _onSearchChanged(String query) {
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+
+    _debounce = Timer(const Duration(milliseconds: 600), () async {
+      if (query.trim().isEmpty) {
+        setState(() {
+          _searchResults = [];
+          _errorMessage = null;
+        });
         return;
       }
-      final results = await _repository.searchCities(query);
 
-      setState(() {
-        _searchResults = results;
-      });
+      try {
+        final results = await _repository.searchCities(query);
+        setState(() {
+          _searchResults = results;
+          _errorMessage = null;
+        });
+      } catch (e) {
+        setState(() {
+          _searchResults = [];
+          _errorMessage = e.toString(); // Catch errors even while typing
+        });
+      }
     });
-
   }
 
   @override
   void dispose() {
     _debounce?.cancel();
-
     _controller.dispose();
     super.dispose();
   }
@@ -195,18 +205,31 @@ class _SearchScreenState extends State<SearchScreen> {
               Expanded(
                   child: _errorMessage != null
                         ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(Icons.search_off, size: 60, color: Colors.grey),
-                            const SizedBox(height: 10),
-                            Text(
-                              _errorMessage!,
-                              style: const TextStyle(color: Colors.grey, fontSize: 16),
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.cloud_off, size: 60, color: Colors.blueGrey),
+                        const SizedBox(height: 10),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: Text(
+                            _errorMessage!,
+                            style: const TextStyle(color: Colors.blueGrey, fontSize: 16),
+                            textAlign: TextAlign.center,
+                          ),
                         ),
+                        const SizedBox(height: 15),
+                        TextButton.icon(
+                          onPressed: () => _performSearch(_controller.text),
+                          icon: const Icon(Icons.refresh, color: Color(0xFF2962FF)),
+                          label: const Text("Try again"),
+                          style: TextButton.styleFrom(
+                            foregroundColor: const Color(0xFF2962FF),
+                            textStyle: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        )
+                      ],
+                    ),
                   )
                   : ListView.builder(
                       itemCount: _searchResults.length,
