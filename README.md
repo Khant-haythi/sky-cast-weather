@@ -148,3 +148,36 @@ lib/
 │       └── presentation/  # Screens, utils, & Riverpod Providers
 ├── core/                  # Theme mappers, animations, & location services
 └── main.dart              # App entry point with ProviderScope
+```
+---
+
+## 📦 Installation & How to Run
+
+You can run **Sky Cast** in two ways: **APK installation** or **from source**.
+
+### 1️⃣ Install APK (Android)
+
+1. Download the APK from this link:  
+   [Download Sky Cast APK](https://drive.google.com/file/d/1TqOF4-mbeahp6CN91PwTIfAZJ3vGf-Xe/view?usp=drive_link)
+
+2. Enable **Install from Unknown Sources** on your device.
+
+3. Open the APK and launch the app.
+
+---
+
+### 2️⃣ Run from Source
+
+1. Clone the repository:  
+
+git clone [https://github.com/Khant-haythi/sky-cast-weather.git]
+
+2. Navigate to the project folder:
+   cd sky-cast-weather-app
+
+3. Install dependencies:
+   flutter pub get
+
+4. Run the app:
+
+flutter run
