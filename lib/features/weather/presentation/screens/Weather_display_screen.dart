@@ -2,35 +2,36 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
 import 'package:sky_cast_weather/features/weather/presentation/screens/weather_detail_screen.dart';
-import '../../data/repositories/weather_repository_impl.dart';
+import '../../../../core/utils/weather_theme_mapper.dart';
 import '../../domain/entities/weather.dart';
 import '../utils/weather_icon_mapper.dart';
-import 'package:weather_icons/weather_icons.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:sky_cast_weather/features/weather/presentation/providers/weather_provider.dart';
 
-class WeatherDisplayScreen extends StatefulWidget {
+class WeatherDisplayScreen extends ConsumerStatefulWidget {
   final String cityName;
   const WeatherDisplayScreen({super.key, required this.cityName});
 
   @override
-  State<WeatherDisplayScreen> createState() => _WeatherDisplayScreenState();
+  ConsumerState<WeatherDisplayScreen> createState() => _WeatherDisplayScreenState();
 }
 
-class _WeatherDisplayScreenState extends State<WeatherDisplayScreen> {
-  final WeatherRepositoryImpl _repository = WeatherRepositoryImpl();
-  late Future<Weather> _weatherFuture;
+class _WeatherDisplayScreenState extends ConsumerState<WeatherDisplayScreen> {
+
   bool _isCelsius = true;
 
   @override
   void initState() {
     super.initState();
-    _loadWeather();
-  }
 
-  void _loadWeather() {
-    setState(() {
-      _weatherFuture = _repository.getWeather(widget.cityName);
+    Future.microtask(() {
+      if (mounted) {
+        ref.read(weatherProvider.notifier).fetchWeather(widget.cityName);
+      }
     });
   }
+
+
 
   String _formatDate(DateTime date) {
     final now = DateTime.now();
@@ -48,68 +49,42 @@ class _WeatherDisplayScreenState extends State<WeatherDisplayScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final weatherState = ref.watch(weatherProvider);
+
     return Scaffold(
-      body: FutureBuilder<Weather>(
-        future: _weatherFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Container(
-              decoration: const BoxDecoration(color: Color(0xFF1A3673)),
-              child: const Center(
-                  child: CircularProgressIndicator(color: Colors.white)),
-            );
+      body: weatherState.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (err, _) => Center(child: Text(err.toString())),
+        data: (weather) {
+
+          if (weather.dailyForecasts.isEmpty) {
+            return const Center(child: Text("No forecast data available for this city."));
           }
 
-          if (snapshot.hasError) {
-            return Container(
-              width: double.infinity,
-              color: const Color(0xFF1A3673),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.error_outline, color: Colors.white70, size: 80),
-                  const SizedBox(height: 16),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 30),
-                    child: Text(
-                      snapshot.error.toString(),
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(color: Colors.white, fontSize: 18),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  ElevatedButton(
-                    onPressed: _loadWeather, // Your retry logic
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.blueAccent),
-                    child: const Text("Retry", style: TextStyle(color: Colors.white)),
-                  ),
-                ],
-              ),
-            );
-          }
+          final int currentCode = weather.dailyForecasts[0].weatherCode;
 
-          final weather = snapshot.data!;
+          final textColor = WeatherThemeMapper.isLightSource(currentCode)
+              ? Colors.black87
+              : Colors.white;
+
+          final dynamicColors = WeatherThemeMapper.getGradient(weather.dailyForecasts[0].weatherCode);
 
           return Container(
-            width: double.infinity,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [Color(0xFF1A3673), Color(0xFF2962FF)],
+                colors: dynamicColors,
               ),
             ),
             child: SafeArea(
               child: RefreshIndicator(
-                onRefresh: () async => _loadWeather(),
+                onRefresh: () async => ref.read(weatherProvider.notifier).fetchWeather(widget.cityName),
                 child: ListView(
-                  padding: EdgeInsets.zero,
                   children: [
-                    _buildTopBar(weather),
-                    const SizedBox(height: 20),
-                    _buildCurrentWeather(weather),
-                    const SizedBox(height: 20),
-                    _buildForecastContainer(weather),
+                    _buildTopBar(weather,textColor),
+                    _buildCurrentWeather(weather,textColor),
+                    _buildForecastContainer(weather,textColor),
                   ],
                 ),
               ),
@@ -120,7 +95,7 @@ class _WeatherDisplayScreenState extends State<WeatherDisplayScreen> {
     );
   }
 
-  Widget _buildTopBar(Weather weather) {
+  Widget _buildTopBar(Weather weather,Color textColor) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
@@ -130,10 +105,12 @@ class _WeatherDisplayScreenState extends State<WeatherDisplayScreen> {
             icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
             onPressed: () => Navigator.pop(context),
           ),
-          Text(
-            "${weather.cityName}, ${weather.country}",
-            style: const TextStyle(
-                color: Colors.white, fontSize: 20, fontWeight: FontWeight.w500),
+          Expanded(
+            child: Text(
+              "${weather.cityName}, ${weather.country}",
+              style: TextStyle(
+                  color: textColor, fontSize: 20, fontWeight: FontWeight.w500),
+            ),
           ),
           GestureDetector(
             onTap: () {
@@ -150,8 +127,8 @@ class _WeatherDisplayScreenState extends State<WeatherDisplayScreen> {
               ),
               child: Text(
                 _isCelsius ? "°C" : "°F",
-                style: const TextStyle(
-                    color: Colors.white,
+                style: TextStyle(
+                    color: textColor,
                     fontWeight: FontWeight.bold,
                     fontSize: 16
                 ),
@@ -163,11 +140,12 @@ class _WeatherDisplayScreenState extends State<WeatherDisplayScreen> {
     );
   }
 
-  Widget _buildCurrentWeather(Weather weather) {
+  Widget _buildCurrentWeather(Weather weather,Color textColor) {
+    final int todayCode = weather.dailyForecasts[0].weatherCode;
     return Column(
       children: [
         Lottie.asset(
-          WeatherAnimationMapper.getAnimation(weather.dailyForecasts[0].weatherCode),
+          WeatherAnimationMapper.getAnimation(todayCode),
           width: 200,
           height: 200,
           fit: BoxFit.contain,
@@ -177,13 +155,13 @@ class _WeatherDisplayScreenState extends State<WeatherDisplayScreen> {
           _isCelsius
               ? "${weather.currentTemp.round()}°C"
               : "${weather.currentTempF.round()}°F",
-          style: const TextStyle(
-              color: Colors.white, fontSize: 80, fontWeight: FontWeight.w200),
+          style: TextStyle(
+              color: textColor, fontSize: 80, fontWeight: FontWeight.w200),
         ),
         Text(
           weather.condition,
-          style: const TextStyle(
-              color: Colors.white,
+          style:  TextStyle(
+              color: textColor,
               fontSize: 22,
               fontWeight: FontWeight.w500
           ),
@@ -194,7 +172,7 @@ class _WeatherDisplayScreenState extends State<WeatherDisplayScreen> {
           _isCelsius
               ? "H: ${weather.dailyForecasts[0].maxTemp.round()}°  L: ${weather.dailyForecasts[0].minTemp.round()}°"
               : "H: ${weather.dailyForecasts[0].maxTempF.round()}°  L: ${weather.dailyForecasts[0].minTempF.round()}°",
-          style: const TextStyle(color: Colors.white70, fontSize: 18),
+          style: TextStyle(color: textColor, fontSize: 18),
         ),
         const SizedBox(height: 5),
 
@@ -203,12 +181,12 @@ class _WeatherDisplayScreenState extends State<WeatherDisplayScreen> {
   }
 
 
-  Widget _buildForecastContainer(Weather weather) {
+  Widget _buildForecastContainer(Weather weather,Color textColor) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
+        color: textColor.withOpacity(0.1),
         borderRadius: BorderRadius.circular(25),
       ),
       child: Column(
@@ -216,12 +194,12 @@ class _WeatherDisplayScreenState extends State<WeatherDisplayScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Row(
+              Row(
                 children: [
-                  Icon(Icons.calendar_month, color: Colors.white70, size: 18),
-                  SizedBox(width: 8),
+                  Icon(Icons.calendar_month, color: textColor, size: 18),
+                  const SizedBox(width: 8),
                   Text("5-day forecast",
-                      style: TextStyle(color: Colors.white70)),
+                      style: TextStyle(color: textColor)),
                 ],
               ),
               GestureDetector(
@@ -234,21 +212,21 @@ class _WeatherDisplayScreenState extends State<WeatherDisplayScreen> {
                     ),
                   );
                 },
-                child: const Text("More details ▶",
-                    style: TextStyle(color: Colors.white70, fontSize: 12)),
+                child: Text("More details ▶",
+                    style: TextStyle(color: textColor, fontSize: 12)),
               ),
             ],
           ),
           const Divider(color: Colors.white24, height: 30),
           ...weather.dailyForecasts.take(5)
-              .map((f) => _buildForecastRow(f))
+              .map((f) => _buildForecastRow(f,textColor))
               .toList(),
         ],
       ),
     );
   }
 
-  Widget _buildForecastRow(DailyForecast forecast) {
+  Widget _buildForecastRow(DailyForecast forecast,Color textColor) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12),
       child: Row(
@@ -256,7 +234,7 @@ class _WeatherDisplayScreenState extends State<WeatherDisplayScreen> {
           Expanded(
             flex: 3,
             child: Text(_formatDate(forecast.date),
-                style: const TextStyle(color: Colors.white, fontSize: 16)),
+                style: TextStyle(color: textColor, fontSize: 16)),
           ),
           Expanded(
             flex: 4,
@@ -269,12 +247,12 @@ class _WeatherDisplayScreenState extends State<WeatherDisplayScreen> {
                 ),
                 const SizedBox(width: 8),
                 Text(forecast.condition,
-                    style: const TextStyle(color: Colors.white, fontSize: 14)),
+                    style: TextStyle(color: textColor, fontSize: 14)),
               ],
             ),
           ),
           Text("${forecast.maxTemp.round()}°",
-              style: const TextStyle(color: Colors.white,
+              style: TextStyle(color: textColor ,
                   fontSize: 16,
                   fontWeight: FontWeight.bold)),
         ],
