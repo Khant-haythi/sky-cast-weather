@@ -173,11 +173,10 @@ You can run **Sky Cast** in two ways: **APK installation** or **from source**.
 git clone [https://github.com/Khant-haythi/sky-cast-weather.git]
 
 2. Navigate to the project folder:
-   cd sky-cast-weather-app
+cd sky-cast-weather-app
 
 3. Install dependencies:
-   flutter pub get
+flutter pub get
 
 4. Run the app:
-
 flutter run
