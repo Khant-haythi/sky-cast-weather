@@ -38,16 +38,14 @@ class WeatherModel extends Weather {
       ));
     }
 
-    // Inside WeatherModel.fromOpenMeteo(Map<String, dynamic> json...)
     final hourly = json['hourly'];
     final List<double> allTemps = List<double>.from(hourly['temperature_2m']);
     final List<int> allCodes = List<int>.from(hourly['weather_code']);
 
     List<DayDetailedForecast> detailedList = [];
 
-// Loop for the next 5 days
     for (int i = 0; i < 5; i++) {
-      int dayOffset = i * 24; // Calculate start of each day
+      int dayOffset = i * 24;
 
       detailedList.add(DayDetailedForecast(
         date: DateTime.now().add(Duration(days: i)),

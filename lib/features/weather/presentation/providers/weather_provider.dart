@@ -11,6 +11,11 @@ final weatherProvider = StateNotifierProvider<WeatherNotifier, AsyncValue<Weathe
   return WeatherNotifier(repo);
 });
 
+final localWeatherProvider = StateNotifierProvider<WeatherNotifier, AsyncValue<Weather>>((ref) {
+  final repo = ref.watch(weatherRepositoryProvider);
+  return WeatherNotifier(repo);
+});
+
 class WeatherNotifier extends StateNotifier<AsyncValue<Weather>> {
   final WeatherRepositoryImpl _repository;
   CancelToken? _cancelToken;
@@ -44,3 +49,5 @@ class WeatherNotifier extends StateNotifier<AsyncValue<Weather>> {
     }
   }
 }
+
+

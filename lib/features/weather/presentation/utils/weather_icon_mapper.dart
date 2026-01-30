@@ -26,10 +26,23 @@ class WeatherIconMapper {
 
 class WeatherAnimationMapper {
   static String getAnimation(int code) {
-    if (code == 0) return 'assets/sunny.json';
-    if (code >= 1 && code <= 3) return 'assets/Weather-partly cloudy.json';
-    if (code >= 51 && code <= 67) return 'assets/rainy icon.json';
-    if (code >= 71 && code <= 86) return 'assets/Weather-snow.json';
+    if (code == 0 || code == 1) return 'assets/sunny.json';
+
+    if (code == 2 || code == 3) return 'assets/Weather-partly cloudy.json';
+
+    if (code == 45 || code == 48) return 'assets/Weather-partly cloudy.json';
+
+    if ((code >= 51 && code <= 67) || (code >= 80 && code <= 82)) {
+      return 'assets/rainy icon.json';
+    }
+
+    if ((code >= 71 && code <= 77) || (code >= 85 && code <= 86)) {
+      return 'assets/snow icon.json';
+    }
+
+    if (code >= 95) return 'assets/rainy icon.json';
+
     return 'assets/sunny.json';
   }
+
 }

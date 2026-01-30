@@ -76,7 +76,6 @@ class WeatherRepositoryImpl implements WeatherRepository {
     }
   }
 
-
   Future<List<Map<String, String>>> searchCities(String query) async {
     try {
       final response = await _dio.get(
@@ -112,7 +111,6 @@ class WeatherRepositoryImpl implements WeatherRepository {
             'admin1': region,
           });
         }
-
 
         if (uniqueCities.length >= 5) break;
       }
