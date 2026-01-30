@@ -15,6 +15,15 @@ This repository contains my solution for the **Sky Cast – Weather (Flutter)** 
 - **Weather API:** Open-Meteo
 
 ---
+## 📱 UI Screenshots
+### 🔍 City Search Screen with Geolocation
+![City Search Screen](screenshots/Search_screen.png)
+
+### 🌤️ Current Weather  Display Screen
+![Current Weather Screen](screenshots/display_screen.png)
+
+### 📊 5-dayDetailed Forecast (More Details)
+![Sunny Weather](screenshots/5-day.png)
 
 ## 🌐 Weather API Integration
 
@@ -112,15 +121,19 @@ The application uses Riverpod to manage the lifecycle of weather data:
 ---
 
 ## 💡 Key Technical Decisions
-- **Singleton Dio Instance**:
-  I implemented a centralized network client using a `static final` Dio instance. This ensures connection socket reuse, significantly improving performance and preventing "connection limit" errors during rapid searches.
 
-- **Defensive Data Parsing (Null Safety)**:
-  To meet the "Correctness" criteria, all JSON parsing in the Model layer utilizes null-aware operators (`?`) and logical fallbacks (`??`). This prevents the common "Null check operator" crashes when external API data is incomplete.
+- **Singleton Dio Instance:**  
+  I implemented a centralized network client using a `static final` Dio instance. This ensures connection socket reuse, significantly improving performance and preventing "connection limit" errors during rapid searches.  
+  Singleton Dio Instance: I implemented a centralized network client using a static final Dio instance. This ensures connection socket reuse, significantly improving performance and preventing "connection limit" errors during rapid searches.
 
-- **Singleton Dio Instance**:
-  I implemented a centralized network client using a `static final` Dio instance. This ensures connection socket reuse, significantly improving performance and preventing "connection limit" errors during rapid searches.
+- **Debounced Search Strategy:**  
+  To optimize API usage and enhance user experience, I implemented a Debouncer (using a Timer) for the city search functionality. This ensures that network requests are only triggered after the user has stopped typing for 600ms, preventing redundant API calls for every keystroke.
 
+- **Unified State Management (Riverpod):**  
+  I utilized Riverpod's StateNotifierProvider to handle asynchronous weather data. By using AsyncValue, the UI reactively handles loading, data, and error states without manual setState logic for data fetching.
+
+- **Separation of Concerns:**  
+  The project follows a clean architecture by separating the Geocoding logic  into a dedicated LocationService. This keeps the UI widgets lean and focuses them entirely on presentation.
 
 ---
 
